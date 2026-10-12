@@ -34,7 +34,7 @@ class NotificationBanner
 
                 foreach (['banner', 'popup'] as $style) {
                     $configId = $pkg->getFileConfig()->get('notification_banner.notification_' . $style);
-                    $notification = $configId ? \NotificationBannerKit\Entity\Notification::getByID((int) $configId) : false;
+                    $notification = $configId ? \NotificationBannerKit\Entity\Notification::getByID($configId) : false;
 
                     if (!$notification || $notification->getStyle() !== $style || !$notification->isWithinSchedule() || !$notification->isVisibleOnPage($page)) {
                         continue;
@@ -48,7 +48,7 @@ class NotificationBanner
                         'style' => $style,
                         'notification' => $notification->getBanner($locale),
                         'dismissable' => ($style === 'popup') ? true : $pkg->getFileConfig()->get('notification_banner.can_dismiss'),
-                    ], 'notification_banner');
+                    ], 'notification_banner_kit');
                     echo '</component-notification>';
                     $output .= ob_get_contents();
                     ob_end_clean();

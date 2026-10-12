@@ -1,8 +1,3 @@
-body.nb-banner {
-	transition: margin-top 200ms;
-	margin-top: 49px;
-}
-
 .notification-banner.nb-show {
 	grid-template-rows: 1fr;
 }
