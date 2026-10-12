@@ -1,6 +1,6 @@
 {
-	"name": "composer_package",
-	"version": "1.0.0",
+	"name": "notification_banner_kit",
+	"version": "0.0.1",
 	"description": "",
 	"main": "index.js",
 	"directories": {
@@ -11,16 +11,22 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/limegreentangerine/composer_package.git"
+		"url": "git+https://github.com/limegreentangerine/NotificationBannerKit.git"
 	},
 	"keywords": [],
-	"author": "",
+	"author": "Dave Hendy <david@limegreentangerine.co.uk>",
+	"contributors": [
+		{
+			"name": "Hannah Johns",
+			"email": "hannah@limegreentangerine.co.uk"
+		}
+	],
 	"license": "ISC",
 	"type": "commonjs",
 	"bugs": {
-		"url": "https://github.com/limegreentangerine/composer_package/issues"
+		"url": "https://github.com/limegreentangerine/NotificationBannerKit/issues"
 	},
-	"homepage": "https://github.com/limegreentangerine/composer_package#readme",
+	"homepage": "https://github.com/limegreentangerine/NotificationBannerKit#readme",
 	"devDependencies": {
 		"prettier": "^3.9.6"
 	}

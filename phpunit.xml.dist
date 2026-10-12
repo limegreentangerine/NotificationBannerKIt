@@ -7,7 +7,7 @@
     colors="true"
 >
     <testsuites>
-        <testsuite name="composer_name">
+        <testsuite name="notification_banner_kit">
             <directory>tests</directory>
         </testsuite>
     </testsuites>

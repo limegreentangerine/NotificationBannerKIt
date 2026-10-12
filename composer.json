@@ -1,20 +1,29 @@
 {
-	"name": "limegreentangerine/composer_package",
-	"description": "composer_description",
+	"name": "limegreentangerine/notification_banner_kit",
+	"description": "Notification Banner",
 	"type": "concrete5-package",
 	"license": "proprietary",
 	"minimum-stability": "stable",
 	"autoload": {
 		"psr-4": {
-			"ComposerPackage\\": "src/"
+			"NotificationBannerKit\\": "src/"
 		}
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"ComposerPackage\\Tests\\": "tests/"
+			"NotificationBannerKit\\Tests\\": "tests/"
 		}
 	},
-	"authors": [],
+	"authors": [
+		{
+			"name": "Dave Hendy",
+			"email": "david@limegreentangerine.co.uk"
+		},
+		{
+			"name": "Hannah Johns",
+			"email": "hannah@limegreentangerine.co.uk"
+		}
+	],
 	"require": {
 		"limegreentangerine/class_kit": "^1.0"
 	},

@@ -1,11 +1,18 @@
 <?php
 
-namespace Concrete\Package\ComposerPackage;
+namespace Concrete\Package\NotificationBannerKit;
 
-use Concrete\Core\Package\Package;
+use Concrete\Core\Entity\Package;
+use ClassKit\Package\PackageController;
+use Concrete\Core\Support\Facade\Events;
+use ClassKit\Package\Traits\{AttributeTrait, BlockTrait, PageTrait};
 
-class Controller extends Package
+class Controller extends PackageController
 {
+    use AttributeTrait;
+    use BlockTrait;
+    use PageTrait;
+
     /**
      * The packages handle.
      * Note that this must be unique in the
@@ -13,14 +20,14 @@ class Controller extends Package
      *
      * @var string
      */
-    protected $pkgHandle = 'composer_package';
+    protected $pkgHandle = 'notification_banner_kit';
 
     /**
      * The packages version.
      *
      * @var string
      */
-    protected $pkgVersion = '0.0.0';
+    protected $pkgVersion = '0.0.1';
 
     /**
      * The minimum Concrete version compatible with the package.
@@ -83,7 +90,13 @@ class Controller extends Package
      * @var array
      */
     protected $pkgAutoloaderRegistries = [
-        'src' => '\ComposerPackage',
+        'src' => '\NotificationBannerKit',
+    ];
+
+    protected $tables = [
+        'nbNotifications',
+        'nbNotificationContents',
+        'nbNotification_NotificationContents',
     ];
 
     /**
@@ -97,11 +110,32 @@ class Controller extends Package
 
     public function getPackageName()
     {
-        return t('composer_name');
+        return t('Notification Banner');
     }
 
     public function getPackageDescription()
     {
-        return t('composer_description');
+        return t('Notification Banner');
     }
+
+    public function on_start()
+    {
+        parent::on_start();
+
+        Events::addListener('on_before_render', function () {
+            \NotificationBannerKit\Events\NotificationBanner::onBeforeRender();
+        });
+    }
+
+    public function installOrUpgrade(Package $pkg)
+    {
+        // Add Dashboard Pages
+        $this->addSinglePage('/dashboard/notification_banner', $pkg, t('Notification Banner'), t('Notification Banner Dashboard'));
+        $this->addSinglePage('/dashboard/notification_banner/notifications', $pkg, t('Notifications'), t('Notification Banner Notifications'));
+        $this->addSinglePage('/dashboard/notification_banner/settings', $pkg, t('Settings'), t('Notification Banner Settings'));
+    }
+
+    public function registerRoutes(): void {}
+
+    public function registerEvents(): void {}
 }

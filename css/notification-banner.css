@@ -1,0 +1,23 @@
+.notification-banner {
+	position: relative;
+	z-index: 999;
+	top: 0;
+	left: 0;
+	right: 0;
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: all 200ms ease-in-out;
+	background-color: var(--bs-primary);
+}
+
+.notification-banner__wrapper {
+	overflow: hidden;
+}
+
+.notification-banner p {
+	line-height: var(--bs-body-line-height);
+	color: var(--bs-white);
+	margin: 0;
+	font-size: var(--bs-body-font-size);
+	display: inline-block;
+}
