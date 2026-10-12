@@ -47,6 +47,7 @@ if (in_array($controller->getTask(), ['add', 'details', 'save'])) {
             'items' => $items,
             'result' => $result,
             'pagination' => $pagination,
+            'canAddNotification' => $canAddNotification ?? false,
         ],
         'notification_banner_kit',
     );
