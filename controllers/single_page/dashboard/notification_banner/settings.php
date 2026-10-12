@@ -37,8 +37,15 @@ class Settings extends DashboardPageController
         return $notifications;
     }
 
+    protected function hasNotifications(): bool
+    {
+        return (new NotificationList())->getTotalResults() > 0;
+    }
+
     public function view()
     {
+        $this->set('hasNotifications', $this->hasNotifications());
+
         $pkg = Package::getByHandle('notification_banner_kit');
         if (is_object($pkg)) {
             $this->set('pkg', $pkg);
@@ -50,7 +57,12 @@ class Settings extends DashboardPageController
 
     public function save()
     {
+        $this->set('hasNotifications', $this->hasNotifications());
         if ($this->post()) {
+            if (!$this->hasNotifications()) {
+                $this->flash('error', t('Create a notification before changing these settings.'));
+                return $this->buildRedirect('/dashboard/notification_banner/settings')->send();
+            }
             $pkg = Package::getByHandle('notification_banner_kit');
             if (is_object($pkg)) {
                 $this->set('pkg', $pkg);

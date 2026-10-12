@@ -3,6 +3,7 @@
 namespace Concrete\Package\NotificationBannerKit\Controller\SinglePage\Dashboard\NotificationBanner;
 
 use File;
+use Package;
 use Concrete\Core\Editor\LinkAbstractor;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use NotificationBannerKit\Entity\NotificationContent;
@@ -248,6 +249,8 @@ class Notifications extends DashboardPageController
                 // Set deleted message
                 $this->flash('success', t('Notification Deleted.'));
 
+                $deletedId = (int) $entity->getID();
+
                 $data = $entity->getData();
                 foreach ($data as $d) {
                     $this->entityManager->remove($d);
@@ -256,6 +259,24 @@ class Notifications extends DashboardPageController
                 // run the delete.
                 $this->entityManager->remove($entity);
                 $this->entityManager->flush();
+
+                $pkg = Package::getByHandle('notification_banner_kit');
+                if (is_object($pkg)) {
+                    $config = $pkg->getFileConfig();
+
+                    // Reset any style (banner/popup) that was pointing at the deleted notification.
+                    foreach (['banner', 'popup'] as $style) {
+                        $key = 'notification_banner.notification_' . $style;
+                        if ((int) $config->get($key) === $deletedId) {
+                            $config->save($key, '');
+                        }
+                    }
+
+                    // With no notifications left there is nothing to show, so switch the feature off.
+                    if ((new NotificationItemList())->getTotalResults() === 0) {
+                        $config->save('notification_banner.activate', false);
+                    }
+                }
 
                 return $rf->json(true);
             }

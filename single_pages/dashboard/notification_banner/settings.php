@@ -1,9 +1,15 @@
 <?php defined('C5_EXECUTE') or die('Access Denied.'); ?>
 
+<?php if (!$hasNotifications) { ?>
+    <div class="alert alert-info">
+        <?php echo t('No notifications have been created yet. <a href="%s">Create a notification</a> before changing these settings.', $view->url('/dashboard/notification_banner/notifications/add')); ?>
+    </div>
+<?php } ?>
+
 <form method="post" action="<?php echo $view->action('save'); ?>">
     <?php echo $token->output('submit') ?>
 
-    <fieldset>
+    <fieldset <?php echo $hasNotifications ? '' : 'disabled'; ?>>
         <legend><?php echo t('Status'); ?></legend>
 
         <div class="form-group">
@@ -14,7 +20,7 @@
         </div>
     </fieldset>
 
-    <fieldset>
+    <fieldset <?php echo $hasNotifications ? '' : 'disabled'; ?>>
         <legend><?php echo t('Notification Display'); ?></legend>
 
         <div class="form-group">
@@ -50,7 +56,7 @@ echo $form->select('notification_popup', $popupNotifications, (isset($formConten
 
     <div class="ccm-dashboard-form-actions-wrapper">
         <div class="ccm-dashboard-form-actions">
-            <?php echo $form->submit('save', t('Save Settings'), ['class' => 'btn btn-primary float-end']); ?>
+            <?php echo $form->submit('save', t('Save Settings'), ['class' => 'btn btn-primary float-end'] + ($hasNotifications ? [] : ['disabled' => 'disabled'])); ?>
         </div>
     </div>
 </form>
