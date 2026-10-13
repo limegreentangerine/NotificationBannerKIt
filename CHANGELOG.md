@@ -2,6 +2,36 @@
 
 Notable changes to this project are documented here.
 
+## 0.0.2
+
+### Added
+
+- An edited notification is shown again to visitors who had dismissed it. The
+  dismissal cookie now stores the notification's last-updated timestamp and is
+  only honoured while it matches. Saving a notification in the dashboard updates
+  that timestamp.
+
+### Changed
+
+- Dismissal is remembered for 30 days (previously 1 day), and the cookie is
+  marked `Secure` on HTTPS. Visitors holding an old `nb_closed_<id>=1` cookie
+  see the notification once more.
+- The banner and popup front-end templates moved from `elements/dashboard/` to
+  `elements/`, and dashboard controllers moved to `controllers/single_page/`.
+- Deleting a notification resets the active banner/popup setting that pointed
+  at it, and switches the feature off when none remain.
+- Added padding to the banner content.
+- Template output is escaped consistently.
+
+### Fixed
+
+- Removed N+1 queries from the Notifications and Settings dashboard pages.
+  Notifications and their contents are loaded together, the one-banner/one-popup
+  check uses a count instead of loading records, and popup images are fetched in
+  one query when saving or editing. Page query counts no longer grow with the
+  number of notifications or locales.
+- Front-end element tests included the templates from their old location.
+
 ## 0.0.1
 
 ### Added

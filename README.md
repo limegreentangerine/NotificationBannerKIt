@@ -15,7 +15,9 @@ notification **banner** and/or **popup**, managed from the dashboard.
 - Scheduling: optional start and end dates control when a notification shows.
 - Display scope: show on `all` pages or the `home` page only.
 - Dismissal: visitors can close a banner (configurable) or popup; the choice is
-  remembered in an `nb_closed_<id>` cookie.
+  remembered for 30 days in an `nb_closed_<id>` cookie. The cookie holds the
+  notification's last-updated timestamp, so editing a notification shows it
+  again to visitors who had dismissed it.
 - Front end is a vanilla-JS Web Component (`<component-notification>`) with
   bundled CSS, which can be replaced with your own.
 
