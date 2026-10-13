@@ -199,10 +199,11 @@ class NotificationContent extends UpdatedGuidEntity
      */
     public function getImage()
     {
-        if ($this->fID === null || $this->fID <= 0) {
+        if ($this->fID === null) {
             return false;
         }
-        $file = \Concrete\Core\File\File::getByID($this->fID);
+        // The association is normally already loaded, so only fall back to a lookup if it holds a bare ID.
+        $file = $this->fID instanceof File ? $this->fID : \Concrete\Core\File\File::getByID((int) $this->fID);
         return ($file instanceof File && !$file->isError()) ? $file : false;
     }
 

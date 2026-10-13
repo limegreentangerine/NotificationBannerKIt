@@ -2,10 +2,10 @@
 
 namespace Concrete\Package\NotificationBannerKit\Controller\SinglePage\Dashboard\NotificationBanner;
 
-use File;
 use Package;
 use Concrete\Core\Editor\LinkAbstractor;
 use Concrete\Core\Http\ResponseFactoryInterface;
+use Concrete\Core\Entity\File\File as FileEntity;
 use NotificationBannerKit\Entity\NotificationContent;
 use Concrete\Core\Page\Controller\DashboardPageController;
 use NotificationBannerKit\Entity\Notification as NotificationEntity;
@@ -52,13 +52,11 @@ class Notifications extends DashboardPageController
         $nl = new NotificationItemList();
         $nl->filterByStyle($style);
 
-        foreach ($nl->getResults() as $n) {
-            if ($excludeId === null || $n->getID() != $excludeId) {
-                return true;
-            }
+        if ($excludeId !== null) {
+            $nl->excludeId($excludeId);
         }
 
-        return false;
+        return $nl->getTotalResults() > 0;
     }
 
     protected function validate($args)
@@ -162,6 +160,12 @@ class Notifications extends DashboardPageController
             $this->buildRedirect('/dashboard/notification_banner/notifications/')->send();
         }
 
+        // Load every locale's content and its image in one query; the form reads them per locale.
+        $this->entityManager
+            ->createQuery('SELECT n, d, f FROM ' . NotificationEntity::class . ' n LEFT JOIN n.data d LEFT JOIN d.fID f WHERE n.id = :id')
+            ->setParameter('id', $entity->getID())
+            ->getResult();
+
         $this->set('entity', $entity);
         $this->set('styles', $this->getAvailableStyles($entity->getID()));
     }
@@ -194,6 +198,17 @@ class Notifications extends DashboardPageController
                 $entity->setStartDate($dateTimeHelper->translate('startDate', $post, true));
                 $entity->setEndDate($dateTimeHelper->translate('endDate', $post, true));
 
+                // Fetch every locale's popup image in one query rather than one per locale.
+                $images = [];
+                if ($post['style'] == 'popup') {
+                    $imageIds = array_values(array_unique(array_filter(array_map('intval', (array) ($post['image'] ?? [])))));
+                    if ($imageIds !== []) {
+                        foreach ($this->entityManager->getRepository(FileEntity::class)->findBy(['fID' => $imageIds]) as $file) {
+                            $images[$file->getFileID()] = $file;
+                        }
+                    }
+                }
+
                 foreach ($this->locales as $locale) {
                     $lang = $locale->getLanguage();
 
@@ -208,8 +223,7 @@ class Notifications extends DashboardPageController
                     }
 
                     if ($post['style'] == 'popup') {
-                        $image = File::getByID($post['image'][$lang]);
-                        $data->setImage($image ?? null);
+                        $data->setImage($images[(int) ($post['image'][$lang] ?? 0)] ?? null);
                     }
 
                     $data->setName($post['name'][$lang]);
@@ -221,6 +235,9 @@ class Notifications extends DashboardPageController
 
                     $entity->addData($data);
                 }
+
+                // Content lives on NotificationContent, so bump this explicitly: the front-end uses it to re-show a dismissed notification after an edit.
+                $entity->setDateUpdated(new \DateTimeImmutable());
 
                 $this->entityManager->persist($entity);
                 $this->entityManager->flush();

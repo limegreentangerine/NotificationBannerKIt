@@ -41,10 +41,10 @@ class NotificationBanner
                     }
 
                     ob_start();
-                    $view = new View();
                     echo '<component-notification>';
-                    $view->element(sprintf('notification_%s', $style), [
+                    View::element(sprintf('notification_%s', $style), [
                         'id' => $notification->getID(),
+                        'version' => $notification->getDateUpdated()->getTimestamp(),
                         'style' => $style,
                         'notification' => $notification->getBanner($locale),
                         'dismissable' => ($style === 'popup') ? true : $pkg->getFileConfig()->get('notification_banner.can_dismiss'),
@@ -54,16 +54,16 @@ class NotificationBanner
                     ob_end_clean();
 
                     if (!$useCustomCss) {
-                        $page->getController()->addHeaderItem($html->css(sprintf('notification-%s.css', $style), 'notification_banner_kit'));
+                        $page->getPageController()->addHeaderItem($html->css(sprintf('notification-%s.css', $style), 'notification_banner_kit'));
                     }
                 }
 
                 if ($output !== '') {
                     if (!$useCustomCss) {
-                        $page->getController()->addHeaderItem($html->css('notification-global.css', 'notification_banner_kit'));
+                        $page->getPageController()->addHeaderItem($html->css('notification-global.css', 'notification_banner_kit'));
                     }
-                    $page->getController()->addFooterItem($output);
-                    $page->getController()->addFooterItem($html->javascript('notification-banner.js', 'notification_banner_kit'));
+                    $page->getPageController()->addFooterItem($output);
+                    $page->getPageController()->addFooterItem($html->javascript('notification-banner.js', 'notification_banner_kit'));
                 }
             }
         }

@@ -14,13 +14,22 @@ class Settings extends DashboardPageController
         'text',
     ];
 
+    private function getCurrentPackage()
+    {
+        $pkg = Package::getByHandle('notification_banner_kit');
+        if (is_object($pkg)) {
+            $this->set('pkg', $pkg);
+            return $pkg;
+        }
+    }
+
     protected function getNotifications(string $style)
     {
         $notifications = [
             '' => t('Choose type...'),
         ];
 
-        $pkg = Package::getByHandle('notification_banner_kit');
+        $pkg = $this->getCurrentPackage();
         $currentId = is_object($pkg) ? $pkg->getFileConfig()->get('notification_banner.notification_' . $style) : null;
 
         $nl = new NotificationList();
@@ -45,12 +54,7 @@ class Settings extends DashboardPageController
     public function view()
     {
         $this->set('hasNotifications', $this->hasNotifications());
-
-        $pkg = Package::getByHandle('notification_banner_kit');
-        if (is_object($pkg)) {
-            $this->set('pkg', $pkg);
-        }
-
+        $pkg = $this->getCurrentPackage();
         $this->set('bannerNotifications', $this->getNotifications('banner'));
         $this->set('popupNotifications', $this->getNotifications('popup'));
     }
@@ -63,9 +67,8 @@ class Settings extends DashboardPageController
                 $this->flash('error', t('Create a notification before changing these settings.'));
                 return $this->buildRedirect('/dashboard/notification_banner/settings')->send();
             }
-            $pkg = Package::getByHandle('notification_banner_kit');
+            $pkg = $this->getCurrentPackage();
             if (is_object($pkg)) {
-                $this->set('pkg', $pkg);
                 $config = $pkg->getFileConfig();
                 $config->save('notification_banner.activate', $this->post('activate') !== null);
                 $config->save('notification_banner.use_custom_css', $this->post('use_custom_css') !== null);
@@ -77,7 +80,6 @@ class Settings extends DashboardPageController
                 return $this->buildRedirect('/dashboard/notification_banner/settings')->send();
             }
             $this->set('formContent', $this->post());
-
         }
     }
 }

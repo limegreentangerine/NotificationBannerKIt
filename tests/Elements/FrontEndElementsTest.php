@@ -46,11 +46,12 @@ final class FrontEndElementsTest extends TestCase
             }
         };
         $id = '1"><script>alert(1)</script>';
+        $version = '123"><script>alert(1)</script>';
         $dismissable = true;
 
         ob_start();
         try {
-            include __DIR__ . '/../../elements/dashboard/' . $element . '.php';
+            include __DIR__ . '/../../elements/' . $element . '.php';
 
             return (string) ob_get_contents();
         } finally {

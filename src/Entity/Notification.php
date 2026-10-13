@@ -4,7 +4,6 @@ namespace NotificationBannerKit\Entity;
 
 use Concrete\Core\Page\Page;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\Criteria;
 use ClassKit\Entity\Core\UpdatedGuidEntity;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -79,12 +78,14 @@ class Notification extends UpdatedGuidEntity
      */
     public function getBanner(string $lang = self::DEFAULT_LANGUAGE)
     {
-        $criteria = Criteria::create()
-            ->where(Criteria::expr()->eq('language', $lang))
-            ->setMaxResults(1);
+        // Loop rather than matching(): on an uninitialised collection matching() runs a query on every call.
+        foreach ($this->data as $content) {
+            if ($content->getLanguage() === $lang) {
+                return $content;
+            }
+        }
 
-        $matching = $this->data->matching($criteria);
-        return $matching->isEmpty() ? false : $matching->first();
+        return false;
     }
 
     /**

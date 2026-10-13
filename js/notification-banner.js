@@ -11,6 +11,7 @@ class NotificationBanner extends HTMLElement {
 
 		this.bannerStyle = this.notification.dataset.style ?? 'default';
 		this.bannerId = this.notification.dataset.bannerId ?? 'default';
+		this.bannerVersion = this.notification.dataset.bannerVersion ?? '';
 		this.cookieName = `nb_closed_${this.bannerId}`;
 
 		this.positionNotification();
@@ -38,7 +39,7 @@ class NotificationBanner extends HTMLElement {
 	init() {
 		document.body.classList.add(`nb-${this.bannerStyle}`);
 
-		if (!this.readCookie(this.cookieName)) {
+		if (this.readCookie(this.cookieName) !== this.bannerVersion) {
 			this.notification.classList.add('nb-show');
 
 			if (this.bannerStyle === 'popup') {
@@ -68,7 +69,7 @@ class NotificationBanner extends HTMLElement {
 	closeNotification(event) {
 		event.preventDefault();
 		this.notification.classList.remove('nb-show');
-		this.createCookie(this.cookieName, 1, 1);
+		this.createCookie(this.cookieName, this.bannerVersion, 30);
 
 		if (this._onKeydown) {
 			document.removeEventListener('keydown', this._onKeydown);
@@ -92,7 +93,9 @@ class NotificationBanner extends HTMLElement {
 			expires = `; expires=${date.toUTCString()}`;
 		}
 
-		document.cookie = `${name}=${value}${expires}; path=/; SameSite=Lax`;
+		const secure = location.protocol === 'https:' ? '; Secure' : '';
+
+		document.cookie = `${name}=${value}${expires}; path=/; SameSite=Lax${secure}`;
 	}
 
 	/**
