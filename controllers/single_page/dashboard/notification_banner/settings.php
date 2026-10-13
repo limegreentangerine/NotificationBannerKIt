@@ -58,6 +58,11 @@ class Settings extends DashboardPageController
         $this->set('settings', SettingsEntity::get());
 
         if ($this->post()) {
+            if (!$this->token->validate('submit')) {
+                $this->flash('error', $this->token->getErrorMessage());
+                return $this->buildRedirect('/dashboard/notification_banner/settings')->send();
+            }
+
             if (!$this->hasNotifications()) {
                 $this->flash('error', t('Create a notification before changing these settings.'));
                 return $this->buildRedirect('/dashboard/notification_banner/settings')->send();
