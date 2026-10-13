@@ -4,19 +4,31 @@ namespace NotificationBannerKit\Events;
 
 use Concrete\Core\Page\Page;
 use Concrete\Core\View\View;
-use Concrete\Core\Package\Package;
+use NotificationBannerKit\Entity\Settings;
 use Concrete\Core\Localization\Localization;
 
 class NotificationBanner
 {
+    /**
+     * Null if the settings can't be read, eg. before the package upgrade that creates the table has been run,
+     * so a missing table can't take every page down.
+     */
+    protected static function getSettings(): ?Settings
+    {
+        try {
+            return Settings::get();
+        } catch (\Throwable) {
+            return null;
+        }
+    }
     public static function onBeforeRender()
     {
         $page = Page::getCurrentPage();
-        $pkg = Package::getByHandle('notification_banner_kit')?->getController();
+        $settings = self::getSettings();
         $display = false;
 
-        if ($pkg && $page) {
-            if ($pkg->getFileConfig()->get('notification_banner.activate') === true) {
+        if ($settings && $page) {
+            if ($settings->isActive()) {
                 $display = match (true) {
                     $page->isAdminArea(),
                     $page->getCollectionPath() == '/login',
@@ -29,12 +41,11 @@ class NotificationBanner
             if ($display) {
                 $locale = Localization::activeLanguage();
                 $html = \Core::make('helper/html');
-                $useCustomCss = $pkg->getFileConfig()->get('notification_banner.use_custom_css') === true;
+                $useCustomCss = $settings->usesCustomCss();
                 $output = '';
 
                 foreach (['banner', 'popup'] as $style) {
-                    $configId = $pkg->getFileConfig()->get('notification_banner.notification_' . $style);
-                    $notification = $configId ? \NotificationBannerKit\Entity\Notification::getByID($configId) : false;
+                    $notification = $settings->getNotification($style);
 
                     if (!$notification || $notification->getStyle() !== $style || !$notification->isWithinSchedule() || !$notification->isVisibleOnPage($page)) {
                         continue;
@@ -47,7 +58,7 @@ class NotificationBanner
                         'version' => $notification->getDateUpdated()->getTimestamp(),
                         'style' => $style,
                         'notification' => $notification->getBanner($locale),
-                        'dismissable' => ($style === 'popup') ? true : $pkg->getFileConfig()->get('notification_banner.can_dismiss'),
+                        'dismissable' => ($style === 'popup') ? true : $settings->canDismiss(),
                     ], 'notification_banner_kit');
                     echo '</component-notification>';
                     $output .= ob_get_contents();

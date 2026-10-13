@@ -2,6 +2,20 @@
 
 Notable changes to this project are documented here.
 
+## 0.0.3
+
+### Changed
+
+- Settings (on/off, custom CSS, dismissable banner, and the notification chosen
+  for each style) are now stored in a new `nbSettings` database table, through a
+  `Settings` entity, instead of the package file config. The chosen banner and
+  popup are foreign keys to `nbNotifications` and are cleared automatically if
+  that notification is deleted.
+- Upgrading copies any existing file-config settings into `nbSettings`. The
+  file config is left in place and is no longer read. **Run the package upgrade
+  after updating**: until then the front end shows nothing, as the table does
+  not exist yet.
+
 ## 0.0.2
 
 ### Added

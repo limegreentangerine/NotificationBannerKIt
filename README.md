@@ -34,9 +34,14 @@ notification **banner** and/or **popup**, managed from the dashboard.
 2. In the Concrete dashboard go to **System & Settings > Extend Concrete**, and
    install **Notification Banner**.
 
-Installation creates three database tables (`nbNotifications`,
-`nbNotificationContents`, `nbNotification_NotificationContents`) and adds three
-dashboard pages under **Notification Banner**.
+Installation creates four database tables (`nbNotifications`,
+`nbNotificationContents`, `nbNotification_NotificationContents`, `nbSettings`)
+and adds three dashboard pages under **Notification Banner**.
+
+When upgrading from 0.0.2 or earlier, run the package upgrade (**System &
+Settings > Extend Concrete**, or `concrete c5:package:update
+notification_banner_kit`). It creates `nbSettings` and copies your existing
+settings across. Notifications are not shown until it has been run.
 
 ## Usage
 
@@ -59,8 +64,8 @@ locale. Notifications can be searched, edited and deleted from the same page.
 | Can dismiss              | Lets visitors close the banner (popups are always dismissable).      |
 | Banner / popup selection | The notification currently shown for each style.                     |
 
-Settings are stored in the package file config (`notification_banner.*`), not
-the database.
+Settings are stored in a single row of the `nbSettings` table (the `Settings`
+entity).
 
 ### 3. What visitors see
 
@@ -73,15 +78,15 @@ positions itself against `.ccm-page`.
 
 ## Project layout
 
-| Path                                | Contents                                                    |
-| ----------------------------------- | ----------------------------------------------------------- |
-| `controller.php`                    | Package controller, autoloader, tables, dashboard pages.    |
-| `src/Entity`                        | `Notification` and `NotificationContent` Doctrine entities. |
-| `src/Events/NotificationBanner.php` | Front-end render hook (`on_before_render`).                 |
-| `src/Search`                        | Search list, columns and results for the dashboard.         |
-| `controllers/`, `single_pages/`     | Dashboard page controllers and views.                       |
-| `elements/`                         | Banner/popup and dashboard partial templates.               |
-| `css/`, `js/`                       | Front-end styles and the Web Component.                     |
+| Path                                | Contents                                                                |
+| ----------------------------------- | ----------------------------------------------------------------------- |
+| `controller.php`                    | Package controller, autoloader, tables, dashboard pages.                |
+| `src/Entity`                        | `Notification`, `NotificationContent` and `Settings` Doctrine entities. |
+| `src/Events/NotificationBanner.php` | Front-end render hook (`on_before_render`).                             |
+| `src/Search`                        | Search list, columns and results for the dashboard.                     |
+| `controllers/`, `single_pages/`     | Dashboard page controllers and views.                                   |
+| `elements/`                         | Banner/popup and dashboard partial templates.                           |
+| `css/`, `js/`                       | Front-end styles and the Web Component.                                 |
 
 ## Development
 

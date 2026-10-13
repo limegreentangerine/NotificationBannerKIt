@@ -5,6 +5,8 @@ namespace Concrete\Package\NotificationBannerKit;
 use Concrete\Core\Entity\Package;
 use ClassKit\Package\PackageController;
 use Concrete\Core\Support\Facade\Events;
+use Doctrine\ORM\EntityManagerInterface;
+use NotificationBannerKit\Entity\{Notification, Settings};
 use ClassKit\Package\Traits\{AttributeTrait, BlockTrait, PageTrait};
 
 class Controller extends PackageController
@@ -27,7 +29,7 @@ class Controller extends PackageController
      *
      * @var string
      */
-    protected $pkgVersion = '0.0.2';
+    protected $pkgVersion = '0.0.3';
 
     /**
      * The minimum Concrete version compatible with the package.
@@ -97,6 +99,7 @@ class Controller extends PackageController
         'nbNotifications',
         'nbNotificationContents',
         'nbNotification_NotificationContents',
+        'nbSettings',
     ];
 
     /**
@@ -107,6 +110,46 @@ class Controller extends PackageController
      * @var array
      */
     protected $tasks = [];
+
+    /**
+     * Settings used to live in the package file config. Copy them into the nbSettings table the first time this runs.
+     * The file config is left in place, so nothing is lost if the upgrade needs to be rolled back.
+     */
+    protected function migrateFileConfigToSettings(): void
+    {
+        $em = $this->app->make(EntityManagerInterface::class);
+
+        if ($em->getRepository(Settings::class)->findOneBy([])) {
+            return;
+        }
+
+        $config = $this->getFileConfig();
+        $saved = array_filter(
+            array_map(fn($key) => $config->get('notification_banner.' . $key), ['activate', 'use_custom_css', 'can_dismiss', 'notification_banner', 'notification_popup']),
+            fn($value) => $value !== null,
+        );
+
+        if ($saved === []) {
+            return;
+        }
+
+        $settings = (new Settings())
+            ->setActive($config->get('notification_banner.activate'))
+            ->setUseCustomCss($config->get('notification_banner.use_custom_css'))
+            ->setCanDismiss($config->get('notification_banner.can_dismiss'));
+
+        foreach (['banner', 'popup'] as $style) {
+            $id = (string) $config->get('notification_banner.notification_' . $style);
+            $notification = $id !== '' ? Notification::getByID($id) : false;
+
+            if ($notification && $notification->getStyle() === $style) {
+                $settings->setNotification($style, $notification);
+            }
+        }
+
+        $em->persist($settings);
+        $em->flush();
+    }
 
     public function getPackageName()
     {
@@ -133,6 +176,8 @@ class Controller extends PackageController
         $this->addSinglePage('/dashboard/notification_banner', $pkg, t('Notification Banner'), t('Notification Banner Dashboard'));
         $this->addSinglePage('/dashboard/notification_banner/notifications', $pkg, t('Notifications'), t('Notification Banner Notifications'));
         $this->addSinglePage('/dashboard/notification_banner/settings', $pkg, t('Settings'), t('Notification Banner Settings'));
+
+        $this->migrateFileConfigToSettings();
     }
 
     public function registerRoutes(): void {}

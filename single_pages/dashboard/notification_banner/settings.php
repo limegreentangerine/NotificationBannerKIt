@@ -14,7 +14,7 @@
 
         <div class="form-group">
             <div class="form-check">
-                <input type="checkbox" id="activate" name="activate" class="form-check-input" value="1" <?php echo (isset($formContent) && isset($formContent['activate'])) ? 'checked' : (($pkg && $pkg->getFileConfig()->get('notification_banner.activate') == true) ? 'checked' : ''); ?> />
+                <input type="checkbox" id="activate" name="activate" class="form-check-input" value="1" <?php echo (isset($formContent) && isset($formContent['activate'])) ? 'checked' : ($settings->isActive() ? 'checked' : ''); ?> />
                 <label for="activate" class="form-check-label"><?php echo t('Activate'); ?></label>
             </div>
         </div>
@@ -26,27 +26,27 @@
         <div class="form-group">
             <?php
                 echo $form->label('notification_banner', t('Choose Banner Notification'));
-echo $form->select('notification_banner', $bannerNotifications, (isset($formContent)) ? $formContent['notification_banner'] : (($pkg && $pkg->getFileConfig()->get('notification_banner.notification_banner') !== '') ? $pkg->getFileConfig()->get('notification_banner.notification_banner') : ''));
+echo $form->select('notification_banner', $bannerNotifications, (isset($formContent)) ? $formContent['notification_banner'] : ($settings->getNotification('banner')?->getID() ?? ''));
 ?>
         </div>
 
         <div class="form-group">
             <?php
     echo $form->label('notification_popup', t('Choose Popup Notification'));
-echo $form->select('notification_popup', $popupNotifications, (isset($formContent)) ? $formContent['notification_popup'] : (($pkg && $pkg->getFileConfig()->get('notification_banner.notification_popup') !== '') ? $pkg->getFileConfig()->get('notification_banner.notification_popup') : ''));
+echo $form->select('notification_popup', $popupNotifications, (isset($formContent)) ? $formContent['notification_popup'] : ($settings->getNotification('popup')?->getID() ?? ''));
 ?>
         </div>
 
         <div class="form-group">
             <div class="form-check">
-                <input type="checkbox" id="use_custom_css" name="use_custom_css" class="form-check-input" value="1" <?php echo (isset($formContent) && isset($formContent['use_custom_css'])) ? 'checked' : (($pkg && $pkg->getFileConfig()->get('notification_banner.use_custom_css') == true) ? 'checked' : ''); ?> />
+                <input type="checkbox" id="use_custom_css" name="use_custom_css" class="form-check-input" value="1" <?php echo (isset($formContent) && isset($formContent['use_custom_css'])) ? 'checked' : ($settings->usesCustomCss() ? 'checked' : ''); ?> />
                 <label for="use_custom_css" class="form-check-label"><?php echo t('Use custom css'); ?></label>
             </div>
         </div>
 
         <div class="form-group">
             <div class="form-check">
-                <input type="checkbox" id="can_dismiss" name="can_dismiss" class="form-check-input" value="1" <?php echo (isset($formContent) && isset($formContent['can_dismiss'])) ? 'checked' : (($pkg && $pkg->getFileConfig()->get('notification_banner.can_dismiss') == true) ? 'checked' : ''); ?> />
+                <input type="checkbox" id="can_dismiss" name="can_dismiss" class="form-check-input" value="1" <?php echo (isset($formContent) && isset($formContent['can_dismiss'])) ? 'checked' : ($settings->canDismiss() ? 'checked' : ''); ?> />
                 <label for="can_dismiss" class="form-check-label"><?php echo t('Dismissable?'); ?></label>
             </div>
 

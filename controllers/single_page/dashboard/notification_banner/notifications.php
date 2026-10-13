@@ -2,12 +2,11 @@
 
 namespace Concrete\Package\NotificationBannerKit\Controller\SinglePage\Dashboard\NotificationBanner;
 
-use Package;
 use Concrete\Core\Editor\LinkAbstractor;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Entity\File\File as FileEntity;
-use NotificationBannerKit\Entity\NotificationContent;
 use Concrete\Core\Page\Controller\DashboardPageController;
+use NotificationBannerKit\Entity\{NotificationContent, Settings};
 use NotificationBannerKit\Entity\Notification as NotificationEntity;
 use NotificationBannerKit\Search\ItemList\Notifications as NotificationItemList;
 use Concrete\Package\NotificationBannerKit\Controller\Search\Notifications as SearchController;
@@ -266,7 +265,17 @@ class Notifications extends DashboardPageController
                 // Set deleted message
                 $this->flash('success', t('Notification Deleted.'));
 
-                $deletedId = (int) $entity->getID();
+                // Clear any style (banner/popup) pointing at this notification before it is removed.
+                $settings = Settings::get();
+                $hasSettings = $this->entityManager->contains($settings);
+
+                if ($hasSettings) {
+                    foreach (['banner', 'popup'] as $style) {
+                        if ($settings->getNotification($style)?->getID() === $entity->getID()) {
+                            $settings->setNotification($style, null);
+                        }
+                    }
+                }
 
                 $data = $entity->getData();
                 foreach ($data as $d) {
@@ -277,22 +286,10 @@ class Notifications extends DashboardPageController
                 $this->entityManager->remove($entity);
                 $this->entityManager->flush();
 
-                $pkg = Package::getByHandle('notification_banner_kit');
-                if (is_object($pkg)) {
-                    $config = $pkg->getFileConfig();
-
-                    // Reset any style (banner/popup) that was pointing at the deleted notification.
-                    foreach (['banner', 'popup'] as $style) {
-                        $key = 'notification_banner.notification_' . $style;
-                        if ((int) $config->get($key) === $deletedId) {
-                            $config->save($key, '');
-                        }
-                    }
-
-                    // With no notifications left there is nothing to show, so switch the feature off.
-                    if ((new NotificationItemList())->getTotalResults() === 0) {
-                        $config->save('notification_banner.activate', false);
-                    }
+                // With no notifications left there is nothing to show, so switch the feature off.
+                if ($hasSettings && (new NotificationItemList())->getTotalResults() === 0) {
+                    $settings->setActive(false);
+                    $this->entityManager->flush();
                 }
 
                 return $rf->json(true);

@@ -2,8 +2,9 @@
 
 namespace Concrete\Package\NotificationBannerKit\Controller\SinglePage\Dashboard\NotificationBanner;
 
-use Package;
+use NotificationBannerKit\Entity\Notification;
 use Concrete\Core\Page\Controller\DashboardPageController;
+use NotificationBannerKit\Entity\Settings as SettingsEntity;
 use NotificationBannerKit\Search\ItemList\Notifications as NotificationList;
 
 class Settings extends DashboardPageController
@@ -14,23 +15,13 @@ class Settings extends DashboardPageController
         'text',
     ];
 
-    private function getCurrentPackage()
-    {
-        $pkg = Package::getByHandle('notification_banner_kit');
-        if (is_object($pkg)) {
-            $this->set('pkg', $pkg);
-            return $pkg;
-        }
-    }
-
-    protected function getNotifications(string $style)
+    protected function getNotifications(string $style, SettingsEntity $settings)
     {
         $notifications = [
             '' => t('Choose type...'),
         ];
 
-        $pkg = $this->getCurrentPackage();
-        $currentId = is_object($pkg) ? $pkg->getFileConfig()->get('notification_banner.notification_' . $style) : null;
+        $currentId = $settings->getNotification($style)?->getID();
 
         $nl = new NotificationList();
         $nl->filterByStyle($style);
@@ -53,33 +44,41 @@ class Settings extends DashboardPageController
 
     public function view()
     {
+        $settings = SettingsEntity::get();
+
         $this->set('hasNotifications', $this->hasNotifications());
-        $pkg = $this->getCurrentPackage();
-        $this->set('bannerNotifications', $this->getNotifications('banner'));
-        $this->set('popupNotifications', $this->getNotifications('popup'));
+        $this->set('settings', $settings);
+        $this->set('bannerNotifications', $this->getNotifications('banner', $settings));
+        $this->set('popupNotifications', $this->getNotifications('popup', $settings));
     }
 
     public function save()
     {
         $this->set('hasNotifications', $this->hasNotifications());
+        $this->set('settings', SettingsEntity::get());
+
         if ($this->post()) {
             if (!$this->hasNotifications()) {
                 $this->flash('error', t('Create a notification before changing these settings.'));
                 return $this->buildRedirect('/dashboard/notification_banner/settings')->send();
             }
-            $pkg = $this->getCurrentPackage();
-            if (is_object($pkg)) {
-                $config = $pkg->getFileConfig();
-                $config->save('notification_banner.activate', $this->post('activate') !== null);
-                $config->save('notification_banner.use_custom_css', $this->post('use_custom_css') !== null);
-                $config->save('notification_banner.can_dismiss', $this->post('can_dismiss') !== null);
-                $config->save('notification_banner.notification_banner', $this->post('notification_banner'));
-                $config->save('notification_banner.notification_popup', $this->post('notification_popup'));
 
-                $this->flash('success', t('Notification settings saved.'));
-                return $this->buildRedirect('/dashboard/notification_banner/settings')->send();
+            $settings = SettingsEntity::get();
+            $settings->setActive($this->post('activate') !== null);
+            $settings->setUseCustomCss($this->post('use_custom_css') !== null);
+            $settings->setCanDismiss($this->post('can_dismiss') !== null);
+
+            foreach (['banner', 'popup'] as $style) {
+                $id = (string) $this->post('notification_' . $style);
+                $notification = $id !== '' ? Notification::getByID($id) : false;
+                $settings->setNotification($style, ($notification && $notification->getStyle() === $style) ? $notification : null);
             }
-            $this->set('formContent', $this->post());
+
+            $this->entityManager->persist($settings);
+            $this->entityManager->flush();
+
+            $this->flash('success', t('Notification settings saved.'));
+            return $this->buildRedirect('/dashboard/notification_banner/settings')->send();
         }
     }
 }
