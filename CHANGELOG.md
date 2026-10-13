@@ -16,6 +16,11 @@ Notable changes to this project are documented here.
   after updating**: until then the front end shows nothing, as the table does
   not exist yet.
 
+### Fixed
+
+- Saving the Settings page now validates the form's CSRF token. Previously a
+  forged cross-site request could change the settings for a logged-in admin.
+
 ## 0.0.2
 
 ### Added
